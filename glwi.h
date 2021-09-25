@@ -1,24 +1,25 @@
-#ifndef GLWI_H
-#define GLWI_H
-
 /*
     Version History
 
+		0.7.0	Successful mouse handling
+        0.6.3   Primitive mouse input
         0.6.2   Style cleanup; windowdim fields update in WM_SIZE
         0.6.1   Added framebuffer resize callback
-        0.6     Refactored to a context driven API
-        0.5     Width and height params set the client area, not window area
-        0.4     Removed hidden data; added primitive mouse/keyboard/callback/ctx structures
-        0.3     Added window_should_close functionaltiy
-        0.2     Bug fixes; currently working
-        0.1     First write
+        0.6.0   Refactored to a context driven API
+        0.5.0   Width and height params set the client area, not window area
+        0.4.0   Removed hidden data; added primitive mouse/keyboard/callback/ctx structures
+        0.3.0   Added window_should_close functionaltiy
+        0.2.0   Bug fixes; currently working
+        0.1.0   First write
 */
 
 // TODO: Add keyboard support
-// TODO: Add mouse support
 // TODO: Add callback fn support
 // TODO: Seperate public and internal facing APIs
 // TODO: Add more NULL/error checking
+
+#ifndef GLWI_H
+#define GLWI_H
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -29,6 +30,8 @@
 #else
     #define GLWI_API    extern
 #endif
+
+typedef struct _tag_glwi_ctx glwi_ctx_t;
 
 // Structures
 typedef struct _tag_glwi_window
@@ -41,18 +44,27 @@ typedef struct _tag_glwi_window
     b32         b_close;
 } glwi_window_t;
 
+typedef struct _tag_glwi_mouse
+{
+    int x, y;
+    int last_x, last_y;
+    f32 sens;
+} glwi_mouse_t;
+
 typedef struct _tag_glwi_callbacks
 {
     void (*fbuffer_resize)(int, int);
+    void (*mouse)(glwi_ctx_t *);
 } glwi_callbacks_t;
 
-typedef struct _tag_glwi_ctx
+ struct _tag_glwi_ctx
 {
     glwi_window_t   *window;
+    glwi_mouse_t    mouse;
     HGLRC           rc;
     HINSTANCE       hinstance;
     glwi_callbacks_t cbs;
-} glwi_ctx_t;
+};
 
 typedef struct _tag_glwi_ctx_desc
 {
@@ -60,6 +72,7 @@ typedef struct _tag_glwi_ctx_desc
     u32         xpos, ypos;
     const char  *title;
     void        (*fbuffer_resize)(int, int);
+    void        (*mouse)(glwi_ctx_t *);
 } glwi_ctx_desc_t;
 
 // Functions

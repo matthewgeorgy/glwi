@@ -18,7 +18,12 @@ glwi_ctx_create(glwi_ctx_t **pp_ctx,
 
     (*pp_ctx)->hinstance = GetModuleHandle(NULL);
     (*pp_ctx)->cbs.fbuffer_resize = p_desc->fbuffer_resize;
+	(*pp_ctx)->cbs.mouse = p_desc->mouse;
     (*pp_ctx)->window = glwi_window_create(p_desc->width, p_desc->height, p_desc->xpos, p_desc->ypos, p_desc->title);
+    (*pp_ctx)->mouse.x = 0;
+    (*pp_ctx)->mouse.y = 0;
+    (*pp_ctx)->mouse.last_x = 0;
+    (*pp_ctx)->mouse.last_y = 0;
 
     return TRUE;
 }
@@ -113,6 +118,7 @@ void
 glwi_poll_events(glwi_ctx_t *p_ctx)
 {
     MSG     msg;
+    POINT   mouse_pos;
 
 
     PeekMessage(&msg, 0, 0, 0, PM_REMOVE);
@@ -123,6 +129,14 @@ glwi_poll_events(glwi_ctx_t *p_ctx)
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    GetCursorPos(&mouse_pos);
+	ScreenToClient(p_ctx->window->hwnd, &mouse_pos);
+    p_ctx->mouse.last_x = p_ctx->mouse.x; 
+    p_ctx->mouse.last_y = p_ctx->mouse.y; 
+	p_ctx->mouse.x = mouse_pos.x;
+	p_ctx->mouse.y = mouse_pos.y;
+	p_ctx->cbs.mouse(p_ctx);
 }
 
 b32
